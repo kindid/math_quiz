@@ -22,8 +22,23 @@
                 margin:2pt;
                 background-color: #fed;
             }
+            .term {
+                display:inline-block;
+                width:72pt;
+                text-align:right;
+                border:1px solid #000;
+                margin:2pt;
+                background-color: #fed;
+            }
         </style>
         <script type="text/javascript">
+
+// TODO: the terms should just be be styled text spans so that 'tab' works nicely
+
+            var clock_e = null;
+            var start_time = 0;
+            var total_time = 0;
+            var interval = null;
             var sums_model = [];
             var sums_view = [];
 
@@ -33,64 +48,72 @@
                     correct += (sums_model[i].total === sums_model[i].given) ? 1 : 0;
                 }
                 document.getElementById('marks').innerHTML = correct.toString() + ' out of 10'
+                if (correct === 10) {
+                    clearInterval(interval);
+                    // put up a big box
+                    alert("Congratulations!\nYou completed the test in " + total_time + " seconds!\nPress OK to go again");
+                    main();
+                    // you've done it - stop the clock I guess.
+                }
+            }
+
+            function mark_sum(index) {
+                sums_model[index].given = parseInt(sums_view[index].result.value);
+                if (sums_model[index].total == sums_model[index].given) {
+                    sums_view[index].tick.innerHTML = '&#x2611'
+                    if (index == 9) {
+                        sums_view[0].result.focus();
+                    } else {
+                        sums_view[index + 1].result.focus();
+                    }
+                } else {
+                    sums_view[index].tick.innerHTML = '&#x2612'
+                }
+                update_marks();
             }
 
             function make_sum_row(index) {
                 var isum = document.createElement('span');
-                var ia = document.createElement('input');
-                ia.readOnly = true;
-                ia.type = 'number';
-                ia.value = sums_model[index].a.toString();
+
+                var ia = document.createElement('span');
+                ia.className = "term";
+                ia.appendChild(document.createTextNode(sums_model[index].a.toString()));
                 isum.appendChild(ia);
+
                 isum.appendChild(document.createTextNode(' + '));
-                var ib = document.createElement('input');
-                ib.readOnly = true;
-                ib.type = 'number';
-                ib.value = sums_model[index].b.toString();
+
+                var ib = document.createElement('span');
+                ib.className = "term";
+                ib.appendChild(document.createTextNode(sums_model[index].b.toString()));
                 isum.appendChild(ib);
+
                 isum.appendChild(document.createTextNode(' = '));
+
                 var iresult = document.createElement('input');
                 iresult.type = 'number';
                 // on iOS you might not get the return key so hook blur
+                // todo; just 'mark_sum(index)'
                 iresult.onblur =
-                    function(index, result_input) {
+                    function(index) {
                         return function() {
-                            sums_model[index].given = parseInt(result_input.value);
-                            if (sums_model[index].total == result_input.value) {
-                                sums_view[index].tick.innerHTML = '&#x2611'
-                                if (index == 9) {
-                                    sums_view[0].result.focus();
-                                } else {
-                                    sums_view[index + 1].result.focus();
-                                }
-                            } else {
-                                sums_view[index].tick.innerHTML = '&#x2612'
+                            if (sums_view[index].result.value !== '') {
+                                mark_sum(index);
                             }
-                            update_marks();
-                        }}(index, iresult);
+                        }}(index)
                 iresult.onkeyup =
-                    function(index, result_input) {
+                    function(index) {
                         return function() {
                             if (window.event.keyCode === 13) {
-                                sums_model[index].given = parseInt(result_input.value);
-                                if (sums_model[index].total == result_input.value) {
-                                    sums_view[index].tick.innerHTML = '&#x2611'
-                                    if (index == 9) {
-                                        sums_view[0].result.focus();
-                                    } else {
-                                        sums_view[index + 1].result.focus();
-                                    }
-                                } else {
-                                    sums_view[index].tick.innerHTML = '&#x2612'
-                                }
-                                update_marks();
+                                mark_sum(index);
                             }
-                        }}(index, iresult);
+                        }}(index);
+                isum.appendChild(iresult);
+
                 var itick = document.createElement('span');
                 itick.innerHTML = '&#x2610;'
-                sums_view[index] = { tick: itick, result: iresult };
-                isum.appendChild(iresult);
                 isum.appendChild(itick);
+
+                sums_view[index] = { tick: itick, result: iresult };
                 return isum;
             }
 
@@ -109,13 +132,38 @@
                     questions.appendChild(document.createElement('br'));
                 }
                 update_marks();
+                sums_view[0].result.focus();
             }
 
             function pick_little_random() {
                 return Math.floor((Math.random() * 10) + 1);
             }
 
+            function ticker() {
+                var now_time = new Date().getTime();
+                total_time = Math.floor((now_time - start_time) / 1000);
+                clock_e.innerHTML = total_time.toString() + ' seconds';
+            }
+
+            function clear_everything() {
+                sums_view = [];
+                sums_model = [];
+                document.getElementById("questions").innerHTML = '';
+            }
+
+            // next up - show some dots so they can count on their fingers as it were
+
             function main() {
+                clear_everything();
+                clock_e = document.getElementById('clock');
+                start_time = new Date().getTime();
+                ticker();
+                interval = setInterval(ticker, 500);   // nyquist...
+
+                // window.setTimeout(function () {
+                //     document.getElementById('mobileno').focus();
+                // }, 0);
+
                 make_sums();
             }
         </script>
@@ -123,6 +171,7 @@
     <body id="body" onload="main();">
         <div id="wrapper" style="text-align: center">
             <h1>HELLO CHARLIE!!</h1>
+            <div><p id="clock"></p></div>
             <div id="questions">
             </div>
             <div>
