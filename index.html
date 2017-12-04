@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;">
+    <head>
+        <meta charset="UTF-8" />
+        <style type="text/css">
+            body {
+                background-color: #def;
+                background: url(aged-paper-background.jpg);
+                /*background-size: cover;*/
+                /*background-size:100%;*/
+                color:#000;
+            }
+            * {
+                font-size:24pt;
+                font-weight:bold;
+                font-family:monospace;
+            }
+            input {
+                width:72pt;
+                text-align:right;
+                border:1px solid #000;
+                margin:2pt;
+                background-color: #fed;
+            }
+        </style>
+        <script type="text/javascript">
+            var sums_model = [];
+            var sums_view = [];
+
+            function update_marks() {
+                var correct = 0;
+                for (var i = 0; i < 10; i++) {
+                    correct += (sums_model[i].total === sums_model[i].given) ? 1 : 0;
+                }
+                document.getElementById('marks').innerHTML = correct.toString() + ' out of 10'
+            }
+
+            function make_sum_row(index) {
+                var isum = document.createElement('span');
+                var ia = document.createElement('input');
+                ia.readOnly = true;
+                ia.type = 'number';
+                ia.value = sums_model[index].a.toString();
+                isum.appendChild(ia);
+                isum.appendChild(document.createTextNode(' + '));
+                var ib = document.createElement('input');
+                ib.readOnly = true;
+                ib.type = 'number';
+                ib.value = sums_model[index].b.toString();
+                isum.appendChild(ib);
+                isum.appendChild(document.createTextNode(' = '));
+                var iresult = document.createElement('input');
+                iresult.type = 'number';
+                // on iOS you might not get the return key so hook blur
+                iresult.onblur =
+                    function(index, result_input) {
+                        return function() {
+                            sums_model[index].given = parseInt(result_input.value);
+                            if (sums_model[index].total == result_input.value) {
+                                sums_view[index].tick.innerHTML = '&#x2611'
+                                if (index == 9) {
+                                    sums_view[0].result.focus();
+                                } else {
+                                    sums_view[index + 1].result.focus();
+                                }
+                            } else {
+                                sums_view[index].tick.innerHTML = '&#x2612'
+                            }
+                            update_marks();
+                        }}(index, iresult);
+                iresult.onkeyup =
+                    function(index, result_input) {
+                        return function() {
+                            if (window.event.keyCode === 13) {
+                                sums_model[index].given = parseInt(result_input.value);
+                                if (sums_model[index].total == result_input.value) {
+                                    sums_view[index].tick.innerHTML = '&#x2611'
+                                    if (index == 9) {
+                                        sums_view[0].result.focus();
+                                    } else {
+                                        sums_view[index + 1].result.focus();
+                                    }
+                                } else {
+                                    sums_view[index].tick.innerHTML = '&#x2612'
+                                }
+                                update_marks();
+                            }
+                        }}(index, iresult);
+                var itick = document.createElement('span');
+                itick.innerHTML = '&#x2610;'
+                sums_view[index] = { tick: itick, result: iresult };
+                isum.appendChild(iresult);
+                isum.appendChild(itick);
+                return isum;
+            }
+
+            function make_sum() {
+                var a = pick_little_random();
+                var b = pick_little_random();
+                return({a:a, b:b, total:(a+b), given:-1 });
+            }
+
+            function make_sums() {
+                var questions = document.getElementById('questions');
+                for (var i = 0; i < 10; i++) {
+                    sums_model[i] = make_sum();
+                    var e = make_sum_row(i);
+                    questions.appendChild(e);
+                    questions.appendChild(document.createElement('br'));
+                }
+                update_marks();
+            }
+
+            function pick_little_random() {
+                return Math.floor((Math.random() * 10) + 1);
+            }
+
+            function main() {
+                make_sums();
+            }
+        </script>
+    </head>
+    <body id="body" onload="main();">
+        <div id="wrapper" style="text-align: center">
+            <h1>HELLO CHARLIE!!</h1>
+            <div id="questions">
+            </div>
+            <div>
+                <p id="marks">-/--</p>
+            </div>
+        </div>
+    </body>
+</html>
