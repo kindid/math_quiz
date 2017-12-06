@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;">
+    <head>
+        <meta charset="UTF-8" />
+        <style type="text/css">
+            body {
+                background-color: #def;
+                background: url(aged-paper-background.jpg);
+                /*background-size: cover;*/
+                /*background-size:100%;*/
+                color:#000;
+            }
+            * {
+                font-size:18pt;
+                font-weight:bold;
+                font-family:monospace;
+            }
+            input {
+                width:72pt;
+                text-align:right;
+                border:1px solid #000;
+                margin:2pt;
+                background-color: #fed;
+            }
+            .term {
+                display:inline-block;
+                width:72pt;
+                text-align:right;
+                border:1px solid #000;
+                margin:2pt;
+                background-color: #fed;
+                border:1px solid red;
+            }
+            .slidecontainer {
+                background-color: rgba(255,255,255,0.5);
+                width:50%;
+                margin:auto;
+            }
+            .slide_table {
+                width:100%;
+            }
+            .nline {
+                background-color: #fff;
+                width:10%;
+            }
+            .slider {
+                margin:10pt 0pt 10pt 0pt;
+                -webkit-appearance: none;
+                appearance: none;
+                width: 90%;
+                height: 25px;
+                background: #ddf;
+                outline: none;
+            }
+            .slider::-webkit-slider-thumb {
+                 -webkit-appearance: none;
+                background-color: #88f;
+                border: 1px solid #000;
+                width: 20pt;
+                height: 40px;
+            }
+            .add_table { margin-left:auto; margin-right:auto; border:1px solid black; text-align:center; }
+            .digit_selected { width: 28pt; height: 28pt; background-color: #88f; padding:4pt; text-align: right; }
+            .colrow_selected { width: 28pt; height: 28pt; background-color: #dd8; padding:4pt; text-align: right; }
+            .factor_highlight { width: 28pt; height: 28pt; background-color: #d8d; padding:4pt; text-align: right; }
+            .digit { width: 28pt; height: 28pt; background-color: #fee; padding:4pt; text-align: right; }
+            .digit_even { width: 28pt; height: 28pt; background-color: #ffd; padding:4pt; text-align: right; }
+            .digit_odd { width: 28pt; height: 28pt; background-color: #ddf; padding:4pt; text-align: right; }
+            .digit_header { width: 28pt; height: 28pt; background-color: #eef; padding:4pt; text-align: right; }
+        </style>
+        <script src="html_table.js" type="text/javascript"></script>
+        <script type="text/javascript">
+
+            function factor(x,y) { return(x * y); }
+            // buttons to show even numbers, prime numbers and a nice
+            // 'hover' effect too
+            var e_add_table = null;
+            var table = null;
+            var e_slider = null;
+
+            function clear_table_styles(divider) {
+                table.set_prop_cell('className', function(x, y) {
+                    return(((factor(x, y) % divider) != 0) ? 'digit_even' : 'digit_odd');
+                })
+                table.set_prop_x('className', 'digit_header');
+                table.set_prop_y('className', 'digit_header');
+            }
+
+            function highlight_factors(xx,yy) {
+                var highlight = factor(xx,yy);
+                table.set_prop_cell('className', function(x,y) {
+                    if (factor(x,y) === highlight) {
+                        return 'factor_highlight';
+                    }
+                })
+            }
+
+            function main() {
+                e_add_table = document.getElementById('add_table');
+                table = new html_table(11, 11, true, true);
+                table.html().className = 'add_table';
+                table.html().border = "1";
+                e_add_table.appendChild(table.html());
+                // pointless... you'll see what
+                // table.set_prop_cell
+//                table.apply_cell(function(v){v.className='digit';})
+                //table.set_prop_cell('className', 'digit');
+
+                table.set_origin_inner('+');
+
+                e_slider = document.getElementById('divider');
+
+                e_slider.oninput = function() {
+                    clear_table_styles(e_slider.value);
+                }
+
+                clear_table_styles(e_slider.value);
+
+                // // why the fuck is it passing 'v' in here?
+                // table.set_prop_cell('className', function(x, y) {
+                //     return((((x + y) % 2) == 0) ? 'digit_even' : 'digit_odd');
+                // })
+                // table.set_prop_x('className', 'digit_header');
+                // table.set_prop_y('className', 'digit_header');
+
+                // now,
+                table.set_prop_cell('onmouseover', function(x,y) {
+                    return function() {
+                        clear_table_styles(e_slider.value);
+                        // clear the table back to it's default state
+                        // enumerable (ha!) features
+                        // now, you want to highlight row and column AND then
+                        // double highlight the entry you hit
+                        //alert(x + ', ' + y);
+
+                        // highlight all the factors too.
+                        // todo; highlight the headers too pla
+
+                        highlight_factors(x, y);
+
+                        table.set_prop_cell_i(x, y, 'className', 'digit_selected');
+                        for (var ix = 0; ix < x; ++ix) {
+                            table.set_prop_cell_i(ix, y, 'className', 'colrow_selected');
+                        }
+                        for (var iy = 0; iy < y; ++iy) {
+                            table.set_prop_cell_i(x, iy, 'className', 'colrow_selected');
+                        }
+
+                        table.set_header_x_prop_i(x, 'className', 'colrow_selected');
+                        table.set_header_y_prop_i(y, 'className', 'colrow_selected');
+                    }
+                })
+                //
+                // table.set_prop_cell('onclick', function(x,y) {
+                //     return function() {
+                //         // now, you want to highlight row and column AND then
+                //         // double highlight the entry you hit
+                //         //alert(x + ', ' + y);
+                //         table.set_prop_cell_i(x, y, 'className', 'digit_selected');
+                //     }
+                // })
+
+
+                table.apply_header_x_inner(function(i){return(i);});
+                table.apply_header_y_inner(function(i){return(i);});
+                table.apply_cell_inner(factor); //function(x,y){return(x+y);});
+                // for (var i = 0; i < 10; ++i) {
+                //     table.set_header_x_inner(i, i);
+                // }
+
+                // e_slider = document.getElementById('divider');
+                // e_slider.oninput = function() {
+                //     var divider = e_slider.value;
+                //     table.set_prop_cell('className', function(x, y) {
+                //         return(((factor(x, y) % divider) != 0) ? 'digit_even' : 'digit_odd');
+                //     })
+//                    output.innerHTML = this.value;
+//                }
+            }
+        </script>
+    </head>
+    <body id="body" onload="main();">
+        <div id="wrapper" style="text-align: center">
+            <h1>Addition Table +</h1>
+            <div><p id="clock"></p></div>
+            <div id="add_table">
+            </div>
+            <br />
+            <div class="slidecontainer">
+                <table class="slide_table"><tr><td class="nline">1</td><td class="nline">2</td><td class="nline">3</td><td class="nline">4</td><td class="nline">5</td><td class="nline">6</td><td class="nline">7</td><td class="nline">8</td><td class="nline">9</td><td class="nline">10</td></tr></table>
+                <input type="range" min="1" max="10" value="1" class="slider" id="divider">
+            </div>
+        </div>
+    </body>
+</html>
