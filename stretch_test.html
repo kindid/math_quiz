@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="html_table.js" type="text/javascript"></script>
+        <style type="text/css">
+            * {
+                padding:0;
+                margin:0;
+            }
+            html {
+                height: 100%;
+                width:100%;
+            }
+            body {
+                background-color: #def;
+                background: url(aged-paper-background.jpg);
+                /*background-size: cover;*/
+                /*background-size:100%;*/
+                color:#000;
+                height: 100%;
+                text-align:center;
+            }
+            * {
+                font-size:24pt;
+                font-weight:bold;
+                font-family:"Courier New", monospace;
+            }
+
+            table {
+              width: 60%;
+              margin-left:20%;
+            }
+            td {
+              width: 8.33%;
+              position: relative;
+              /*background-color: red;*/
+            }
+            th {
+                width: 8.33%;
+                position: relative;
+                background-color: red;
+            }
+            td:after {
+                /*border:1px solid blue;*/
+              content: '';
+              display: block;
+              margin-top: 100%;
+              background-color: red;
+            }
+            /* sometimes I just want to give up and position the damn things myself */
+            .content {
+                background-color: #f00;
+                text-align: right;
+                vertical-align: middle;
+                position: absolute;
+                /*display:table;*/
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                /*width:100%;
+                height: 100%;*/
+
+              /*background: gold;*/
+            }
+            .content_inner {
+                position: fixed;
+                text-align: right;
+                /*background-color: #0f0;*/
+                border:1px solid #00f;
+                width:100%;
+                /*display:table-cell;*/
+            }
+
+            /* should be classified */
+/*            table {
+                width:75%;
+                height:100%;
+                margin-left:12.5%;
+            }
+            table, th, td {
+                border-collapse: collapse;
+                border: 1px solid black;
+                text-align: right;
+            }
+            th, td {
+            }*/
+            .digit_even { background-color: #ffd; padding:4pt; text-align: right; }
+            .digit_odd { background-color: #ddf; padding:4pt; text-align: right; }
+            .digit_header { background-color: #eef; padding:4pt; text-align: right; }
+        </style>
+
+        <!-- damn it! I'm already using JS to draw the table - why not actually just draw the table with divs
+             i can lay them out myself -->
+
+        <script type="text/javascript">
+            var e_add_table = null;
+            var table = null;
+
+            function clear_table_styles(divider) {
+                // table.set_prop_cell('className', function(x, y) {
+                //     return(((factor(x, y) % divider) != 0) ? 'digit_even' : 'digit_odd');
+                // })
+                // table.set_prop_x('className', 'digit_header');
+                // table.set_prop_y('className', 'digit_header');
+            }
+
+            // what expression do you want?
+            function factor(x,y) { return(x + y); }
+
+            function identity(x) { return(x); }
+
+            function main() {
+
+                e_add_table = document.getElementById('add_table');
+                //alert(e_add_table);
+                table = new html_table(11, 11, true, true);
+                table.html().className = 'add_table';
+                table.html().border = "1";  // remove - can be done in CSS with a border collapse
+                e_add_table.appendChild(table.html());
+
+
+                // I want these to be SQ
+                table.apply_header_x_inner(identity);
+                table.apply_header_y_inner(identity);
+                //table.apply_cell_inner(
+                table.apply_cell(
+                    function(dom, x, y) {
+                        var div = document.createElement('div');
+                        div.className = "content";
+                        var div2 = document.createElement('div');
+                        div.className = "content_inner";
+                        div2.appendChild(document.createTextNode(factor(x,y)));
+                        div.appendChild(div2);
+                        dom.appendChild(div);
+                    })
+
+
+                    //factor);
+
+                clear_table_styles(2);
+
+            }
+        </script>
+    </head>
+    <body id="body" onload="main();">
+        <p>Just some text</p>
+        <div id="add_table"></div>
+        <!--<table>
+            <tr>
+                <td>00</td>
+                <td>01</td>
+                <td>02</td>
+                <td>03</td>
+                <td>04</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>11</td>
+                <td>12</td>
+                <td>13</td>
+                <td>14</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>11</td>
+                <td>12</td>
+                <td>13</td>
+                <td>14</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>11</td>
+                <td>12</td>
+                <td>13</td>
+                <td>14</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>11</td>
+                <td>12</td>
+                <td>13</td>
+                <td>14</td>
+            </tr>
+        </table>-->
+    </body>
+</html>

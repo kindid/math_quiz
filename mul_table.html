@@ -99,7 +99,7 @@
                 e_add_table = document.getElementById('add_table');
                 table = new html_table(11, 11, true, true);
                 table.html().className = 'add_table';
-                table.html().border = "1";
+                table.html().border = "1";  // remove - can be done in CSS with a border collapse
                 e_add_table.appendChild(table.html());
                 // pointless... you'll see what
                 // table.set_prop_cell
