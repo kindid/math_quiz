@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;">
+    <head>
+        <meta charset="UTF-8" />
+        <style type="text/css">
+            body {
+                background-color: #def;
+                background: url(aged-paper-background.jpg);
+                /*background-size: cover;*/
+                /*background-size:100%;*/
+                color:#000;
+            }
+            * {
+                font-size:24pt;
+                font-weight:bold;
+                font-family:monospace;
+            }
+            #wrapper {
+
+            }
+            #questions {
+                width:50%;
+            }
+            #calc_pad {
+                float: right;
+                margin-left: 50%;
+            }
+            input {
+                width:72pt;
+                text-align:right;
+                border:1px solid #000;
+                margin:2pt;
+                background-color: #fed;
+            }
+            .term {
+                display:inline-block;
+                font-size:24pt;
+                background: #eee;
+                border-radius: 8pt;
+                box-shadow: inset 1px 1px 2px 0px #444;
+                border:1px solid #bbb;
+                padding:6pt 8pt 6pt 8pt;
+                text-align: right;
+                width:72pt;
+            }
+            #display {
+                font-size:24pt;
+                background: #eee;
+                border-radius: 8pt;
+                box-shadow: inset 1px 1px 2px 0px #444;
+                border:1px solid #bbb;
+                padding:6pt 8pt 6pt 8pt;
+                text-align: right;
+                width:178pt;
+            }
+
+            button {
+                width:48pt;
+                height:48pt;
+                border-radius: 8pt;
+                outline:none;
+                background: #ddd;
+                /*linear-gradient(white, grey);*/
+                box-shadow: inset -2px -2px 4px 0px #444;
+                transition: box-shadow 0.1s, font-size 0.1s;
+                padding:10pt;
+                font-size:24pt;
+            }
+            button:active {
+                background: #aaa;
+                /*linear-gradient(grey, white);*/
+                box-shadow: inset 2px 2px 4px 0px #444;
+                font-size:20pt;
+            }
+        </style>
+        <script type="text/javascript">
+
+// TODO: the terms should just be be styled text spans so that 'tab' works nicely
+
+            var clock_e = null;
+            var start_time = 0;
+            var total_time = 0;
+            var interval = null;
+            var sums_model = [];
+            var sums_view = [];
+
+            function update_marks() {
+                var correct = 0;
+                for (var i = 0; i < 10; i++) {
+                    correct += (sums_model[i].total === sums_model[i].given) ? 1 : 0;
+                }
+                document.getElementById('marks').innerHTML = correct.toString() + ' out of 10'
+                if (correct === 10) {
+                    clearInterval(interval);
+                    // put up a big box
+                    alert("Congratulations!\nYou completed the test in " + total_time + " seconds!\nPress OK to go again");
+                    main();
+                    // you've done it - stop the clock I guess.
+                }
+            }
+
+            function mark_sum(index) {
+                sums_model[index].given = parseInt(sums_view[index].result.value);
+                if (sums_model[index].total == sums_model[index].given) {
+                    sums_view[index].tick.innerHTML = '&#x2611'
+                    if (index == 9) {
+                        sums_view[0].result.focus();
+                    } else {
+                        sums_view[index + 1].result.focus();
+                    }
+                } else {
+                    sums_view[index].tick.innerHTML = '&#x2612'
+                }
+                update_marks();
+            }
+
+            function make_sum_row(index) {
+                var isum = document.createElement('span');
+
+                var ia = document.createElement('span');
+                ia.className = "term";
+                ia.appendChild(document.createTextNode(sums_model[index].a.toString()));
+                isum.appendChild(ia);
+
+                isum.appendChild(document.createTextNode(' + '));
+
+                var ib = document.createElement('span');
+                ib.className = "term";
+                ib.appendChild(document.createTextNode(sums_model[index].b.toString()));
+                isum.appendChild(ib);
+
+                isum.appendChild(document.createTextNode(' = '));
+
+                // doesn't even need to be an input anymore
+                //  a lot of changes - we need to know which is picked
+                //  it actually looks a lot like a table again (weird)
+                //var iresult = document.createElement('input');
+                var iresult = document.createElement('input');
+                iresult.type = 'number';
+                // on iOS you might not get the return key so hook blur
+                // todo; just 'mark_sum(index)'
+                iresult.onblur =
+                    function(index) {
+                        return function() {
+                            if (sums_view[index].result.value !== '') {
+                                mark_sum(index);
+                            }
+                        }}(index)
+                iresult.onkeyup =
+                    function(index) {
+                        return function() {
+                            if (window.event.keyCode === 13) {
+                                mark_sum(index);
+                            }
+                        }}(index);
+                isum.appendChild(iresult);
+
+                var itick = document.createElement('span');
+                itick.innerHTML = '&#x2610;'
+                isum.appendChild(itick);
+
+                sums_view[index] = { tick: itick, result: iresult };
+                return isum;
+            }
+
+            function make_sum() {
+                var a = pick_little_random();
+                var b = pick_little_random();
+                return({a:a, b:b, total:(a+b), given:-1 });
+            }
+
+            function make_sums() {
+                var questions = document.getElementById('questions');
+                for (var i = 0; i < 10; i++) {
+                    sums_model[i] = make_sum();
+                    var e = make_sum_row(i);
+                    questions.appendChild(e);
+                    questions.appendChild(document.createElement('br'));
+                }
+                update_marks();
+                sums_view[0].result.focus();
+            }
+
+            function pick_little_random() {
+                return Math.floor((Math.random() * 10) + 1);
+            }
+
+            function ticker() {
+                var now_time = new Date().getTime();
+                total_time = Math.floor((now_time - start_time) / 1000);
+                clock_e.innerHTML = total_time.toString() + ' seconds';
+            }
+
+            function clear_everything() {
+                sums_view = [];
+                sums_model = [];
+                document.getElementById("questions").innerHTML = '';
+            }
+
+            // next up - show some dots so they can count on their fingers as it were
+
+            function main() {
+                clear_everything();
+                clock_e = document.getElementById('clock');
+                start_time = new Date().getTime();
+                ticker();
+                interval = setInterval(ticker, 500);   // nyquist...
+
+                // window.setTimeout(function () {
+                //     document.getElementById('mobileno').focus();
+                // }, 0);
+
+                make_sums();
+            }
+        </script>
+    </head>
+    <body id="body" onload="main();">
+        <div id="wrapper">
+            <h1>HELLO CHARLIE!!</h1>
+            <div><p id="clock"></p></div>
+            <div id="questions">
+            </div>
+            <div>
+                <p id="marks">-/--</p>
+            </div>
+            <div id="calc_pad">
+                <table>
+                    <tr>
+                        <td colspan="4">
+                            <input id="display" type="line" readonly="1"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><button onclick="press_num(7);">7</button></td>
+                        <td><button onclick="press_num(8);">8</button></td>
+                        <td><button onclick="press_num(9);">9</button></td>
+                        <td><button onclick="press_del();">&#8677;</button></td>
+
+                    </tr>
+                    <tr>
+                        <td><button onclick="press_num(4);">4</button></td>
+                        <td><button onclick="press_num(5);">5</button></td>
+                        <td><button onclick="press_num(6);">6</button></td>
+                        <td><button onclick="press_pm();">&plusmn;</button></td>
+                    </tr>
+                    <tr>
+                        <td><button onclick="press_num(1);">1</button></td>
+                        <td><button onclick="press_num(2);">2</button></td>
+                        <td><button onclick="press_num(3);">3</button></td>
+                        <td><button>.</button></td>
+                    </tr>
+                    <tr>
+                        <td><button onclick="press_num(0);">0</button></td>
+                        <td colspan="3"><button class="go">GO</button></td>
+                    </tr>
+                    <tr>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
