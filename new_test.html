@@ -14,34 +14,24 @@
                 font-size:24pt;
                 font-weight:bold;
                 font-family:monospace;
+                padding:0;
+                margin:0;
             }
             #wrapper {
 
             }
             #questions {
-                width:50%;
+                float:left;
+                width:40%;
             }
             #calc_pad {
-                float: right;
+                /*float: right;*/
+                width:40%;
                 margin-left: 50%;
             }
-            input {
-                width:72pt;
-                text-align:right;
-                border:1px solid #000;
-                margin:2pt;
-                background-color: #fed;
-            }
-            .term {
-                display:inline-block;
-                font-size:24pt;
-                background: #eee;
-                border-radius: 8pt;
-                box-shadow: inset 1px 1px 2px 0px #444;
-                border:1px solid #bbb;
-                padding:6pt 8pt 6pt 8pt;
-                text-align: right;
-                width:72pt;
+            #marks {
+                clear:both;
+                text-align: center;
             }
             #display {
                 font-size:24pt;
@@ -52,6 +42,34 @@
                 padding:6pt 8pt 6pt 8pt;
                 text-align: right;
                 width:178pt;
+            }
+            /*input {
+                width:72pt;
+                text-align:right;
+                border:1px solid #000;
+                margin:2pt;
+                background-color: #fed;
+            }*/
+            .term {
+                display:inline-block;
+                font-size:24pt;
+                background: #eee;
+                border-radius: 8pt;
+                box-shadow: inset 1px 1px 2px 0px #444;
+                border:1px solid #bbb;
+                padding:6pt 8pt 6pt 8pt;
+                text-align: right;
+                width:72pt;
+                height:24pt;
+                vertical-align:top;
+            }
+            .sum {
+                /*height:32pt;*/
+                padding:0;
+                vertical-align: bottom;
+                margin:6pt 0 6pt 0;
+                /*border:1px solid green;*/
+                /*vertical-align:top;*/
             }
 
             button {
@@ -71,6 +89,9 @@
                 /*linear-gradient(grey, white);*/
                 box-shadow: inset 2px 2px 4px 0px #444;
                 font-size:20pt;
+            }
+            .go {
+                width:100%;
             }
         </style>
         <script type="text/javascript">
@@ -115,7 +136,8 @@
             }
 
             function make_sum_row(index) {
-                var isum = document.createElement('span');
+                var isum = document.createElement('div');
+                isum.className = "sum";
 
                 var ia = document.createElement('span');
                 ia.className = "term";
@@ -135,10 +157,13 @@
                 //  a lot of changes - we need to know which is picked
                 //  it actually looks a lot like a table again (weird)
                 //var iresult = document.createElement('input');
-                var iresult = document.createElement('input');
-                iresult.type = 'number';
+                var iresult = document.createElement('span');
+                iresult.className = "term";
+//                iresult.appendChild(document.createTextNode('a'));
+                //iresult.type = 'number';
                 // on iOS you might not get the return key so hook blur
                 // todo; just 'mark_sum(index)'
+                iresult.onclick = function(index) { return function() { alert(index); } }(index);
                 iresult.onblur =
                     function(index) {
                         return function() {
@@ -146,13 +171,15 @@
                                 mark_sum(index);
                             }
                         }}(index)
-                iresult.onkeyup =
-                    function(index) {
-                        return function() {
-                            if (window.event.keyCode === 13) {
-                                mark_sum(index);
-                            }
-                        }}(index);
+
+                // not anymore -
+                // iresult.onkeyup =
+                //     function(index) {
+                //         return function() {
+                //             if (window.event.keyCode === 13) {
+                //                 mark_sum(index);
+                //             }
+                //         }}(index);
                 isum.appendChild(iresult);
 
                 var itick = document.createElement('span');
@@ -175,7 +202,7 @@
                     sums_model[i] = make_sum();
                     var e = make_sum_row(i);
                     questions.appendChild(e);
-                    questions.appendChild(document.createElement('br'));
+//                    questions.appendChild(document.createElement('br'));
                 }
                 update_marks();
                 sums_view[0].result.focus();
@@ -220,9 +247,6 @@
             <div><p id="clock"></p></div>
             <div id="questions">
             </div>
-            <div>
-                <p id="marks">-/--</p>
-            </div>
             <div id="calc_pad">
                 <table>
                     <tr>
@@ -256,6 +280,9 @@
                     <tr>
                     </tr>
                 </table>
+            </div>
+            <div>
+                <p id="marks">-/--</p>
             </div>
         </div>
     </body>
